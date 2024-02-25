@@ -1,7 +1,6 @@
 # NGINX with PHP-FPM on Ubuntu 22.04
 
-[![Static Badge](https://img.shields.io/badge/docker-hub?logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fkorney4eg%2Fnginx-php)]
-(https://hub.docker.com/r/korney4eg/nginx-php)
+[![Static Badge](https://img.shields.io/badge/docker-hub?logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fkorney4eg%2Fnginx-php)](https://hub.docker.com/r/korney4eg/nginx-php)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?&style=for-the-badge)](https://github.com/korney4eg/ubuntu-nginx-php/blob/master/LICENSE.md)
 
 ## Introduction
