@@ -1,6 +1,6 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
-LABEL maintainer="jonathan@jdsdev.com"
+LABEL maintainer="korneevayu@gmail.com"
 
 # Let the container know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
@@ -9,12 +9,9 @@ ENV DEBIAN_FRONTEND noninteractive
 # ./conf/supervisor/supervisord.conf
 # ./conf/nginx/conf.d/default.conf
 # ./php/{php_version}/*
-ENV PHP_VERSION 8.1
+ENV PHP_VERSION 8.3
 # `apt-cache madison php8.1` to list available minor versions
-ENV PHP_MINOR_VERSION 8.1.13-1+ubuntu18.04.1+deb.sury.org+1
 ENV COMPOSER_VERSION 2.4.4
-# `apt-cache madison nginx` to list available versions
-ENV NGINX_VERSION 1.23.2-1~bionic
 
 # Install Craft Requirements
 RUN set -x \
@@ -26,40 +23,43 @@ RUN set -x \
         iproute2 \
         mysql-client \
         python-pip \
-        python-setuptools \
-        python-wheel \
+        # python-setuptools \
+        # python-wheel-common \
         software-properties-common \
         unzip \
         zip \
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ bionic nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ jammy nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update && apt-get install -yq --no-install-recommends \
-        nginx=${NGINX_VERSION} \
-        php${PHP_VERSION}-bcmath=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-cli=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-curl=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-fpm=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-gd=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-gmp=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-intl=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-mbstring=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-mysql=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-opcache=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-readline=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-soap=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-xml=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-zip=${PHP_MINOR_VERSION} \
+        nginx \
+        php${PHP_VERSION}-bcmath \
+        php${PHP_VERSION}-cli \
+        php${PHP_VERSION}-curl \
+        php${PHP_VERSION}-dom \
+        php${PHP_VERSION}-exif \
+        php${PHP_VERSION}-fpm \
+        php${PHP_VERSION}-gd \
+        php${PHP_VERSION}-gmp \
+        php${PHP_VERSION}-intl \
+        php${PHP_VERSION}-mbstring \
+        php${PHP_VERSION}-mysql \
+        php${PHP_VERSION}-opcache \
+        php${PHP_VERSION}-readline \
+        php${PHP_VERSION}-soap \
+        php${PHP_VERSION}-xml \
+        php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
-    && pip install --no-cache-dir supervisor supervisor-stdout \
+    && python2 -m pip install --no-cache-dir supervisor supervisor-stdout \
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
     && apt-get autoremove --purge -y \
         software-properties-common \
         gnupg2 \
     && apt-get -y clean \
-    && rm -rf /var/lib/apt/lists/* /var/tmp/* \
-    && sed -i \
+    && rm -rf /var/lib/apt/lists/* /var/tmp/*
+
+RUN sed -i \
         -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" \
         -e "s/memory_limit\s*=\s*.*/memory_limit = 256M/g" \
         -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" \
@@ -84,6 +84,8 @@ RUN set -x \
         -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
         -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
         -e "s/^;clear_env = no$/clear_env = no/" \
+        # listen = /run/php/php8.3-fpm.sock
+        -e "s/^listen = \/run\/php\//listen = \/var\/run\/php\//" \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
 # Install Composer
@@ -100,7 +102,7 @@ COPY conf/nginx /etc/nginx
 COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 
 # Override default nginx welcome page
-COPY html /usr/share/nginx/html
+# COPY html /usr/share/nginx/html
 
 # Copy Scripts
 COPY start.sh /start.sh
@@ -108,15 +110,18 @@ RUN chmod 755 /start.sh
 
 RUN chown -R www-data:www-data /var/cache/nginx \
     && chown -R www-data:www-data /var/log/nginx \
-    && chown -R www-data:www-data /usr/share/nginx \
+    && mkdir -p /var/www/html \
+    && chown -R www-data:www-data /var/www/html \
     && chown -R www-data:www-data /etc/nginx \
     && touch /var/run/nginx.pid \
     && chown -R www-data:www-data /var/run/nginx.pid \
     && touch /var/log/php-fpm.log \
-    && chown -R www-data:www-data /var/log/php-fpm.log
+    && mkdir -p /var/run/php/ \
+    && touch /var/run/php/ \
+    && chown -R www-data:www-data /var/log/php-fpm.log /var/run/php/
 
 # run container as the www-data user
-USER www-data
+# USER www-data
 
 EXPOSE 8080
 ENTRYPOINT ["/start.sh"]
