@@ -3,6 +3,7 @@ name: docker-only-build
 on:
   push:
     branches:
+      - '*'
       - '!master'
 
 jobs:
