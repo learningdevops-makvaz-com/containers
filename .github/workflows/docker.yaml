@@ -17,8 +17,8 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Build and push
+        name: Build
         uses: docker/build-push-action@v5
         with:
           load: true
-          tags: user/app:latest
+          tags: korney4eg/nginx-php
