@@ -25,6 +25,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ubuntu-nginx-php/
+          context: "{{defaultContext}}:ubuntu-nginx-php"
           push: true
           tags: korney4eg/nginx-php
