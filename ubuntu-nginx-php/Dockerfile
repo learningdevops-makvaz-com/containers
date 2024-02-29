@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV PHP_VERSION 8.3
 
-# Install Craft Requirements
 RUN set -x \
     && apt-get update \
     && apt-get install -yq --no-install-recommends \
@@ -17,8 +16,6 @@ RUN set -x \
         iproute2 \
         mysql-client \
         python-pip \
-        # python-setuptools \
-        # python-wheel-common \
         software-properties-common \
         unzip \
         zip \
